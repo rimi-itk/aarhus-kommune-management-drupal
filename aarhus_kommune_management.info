@@ -1,0 +1,5 @@
+name = Aarhus kommune management
+description = Manages users
+core = 7.x
+package = Aarhus kommune
+dependencies[] = xautoload

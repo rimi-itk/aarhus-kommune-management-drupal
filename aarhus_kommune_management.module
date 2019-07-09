@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Module file for aarhus_kommune_management.
+ */
+
+use Drupal\aarhus_kommune_management\Controller\UserController;
+
+/**
+ * Implements hook_menu().
+ */
+function aarhus_kommune_management_menu() {
+  $items['admin/config/aarhus-kommune-management/users'] = [
+    'title' => 'aarhus-kommune-management/users settings',
+    'description' => 'Settings for aarhus-kommune-management/users',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['aarhus_kommune_management_admin_users_form'],
+    'access arguments' => ['administer site configuration'],
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'aarhus_kommune_management.admin.inc',
+  ];
+
+  $items['aarhus-kommune-management/users'] = [
+    'page callback' => 'aarhus_kommune_management_users',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'aarhus_kommune_management_deliver',
+  ];
+
+  return $items;
+}
+
+/**
+ * Users.
+ */
+function aarhus_kommune_management_users() {
+  try {
+    $controller = new UserController();
+
+    return $controller->handle();
+  }
+  catch (\Exception $exception) {
+    return [
+      'error' => [
+        'code' => $exception->getCode(),
+        'message' => $exception->getMessage(),
+      ]
+    ];
+  }
+}
+
+/**
+ * Deliver result.
+ */
+function aarhus_kommune_management_deliver($result) {
+  $accept = $_SERVER['HTTP_ACCEPT'];
+
+  if (preg_match('@\*/\*|application/json@', $accept)) {
+    drupal_json_output($result);
+    exit;
+  }
+
+  if (preg_match('@application/xml@', $accept)) {
+    header('content-type: application/xml');
+    echo format_xml_elements(['result' => $result]);
+    exit;
+  }
+
+  header('content-type: text/plain');
+  echo 'Invalid request: Missing or invalid accept header';
+}
