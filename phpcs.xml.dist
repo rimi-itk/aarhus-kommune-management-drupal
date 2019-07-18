@@ -4,6 +4,7 @@
 
 	<file>aarhus_kommune_management.info</file>
 	<file>aarhus_kommune_management.module</file>
+	<file>aarhus_kommune_management.admin.inc</file>
 	<file>src/</file>
 
 	<!-- Do not print warnings -->

@@ -5,20 +5,28 @@
  * Module file for aarhus_kommune_management.
  */
 
+use Drupal\aarhus_kommune_management\Controller\AuthenticationController;
 use Drupal\aarhus_kommune_management\Controller\UserController;
 
 /**
  * Implements hook_menu().
  */
 function aarhus_kommune_management_menu() {
-  $items['admin/config/aarhus-kommune-management/users'] = [
-    'title' => 'aarhus-kommune-management/users settings',
-    'description' => 'Settings for aarhus-kommune-management/users',
+  $items['admin/config/aarhus-kommune-management'] = [
+    'title' => 'aarhus-kommune-management/settings',
+    'description' => 'Settings for aarhus-kommune-management',
     'page callback' => 'drupal_get_form',
-    'page arguments' => ['aarhus_kommune_management_admin_users_form'],
+    'page arguments' => ['aarhus_kommune_management_admin_form'],
     'access arguments' => ['administer site configuration'],
     'type' => MENU_NORMAL_ITEM,
     'file' => 'aarhus_kommune_management.admin.inc',
+  ];
+
+  $items['aarhus-kommune-management/authenticate'] = [
+    'page callback' => 'aarhus_kommune_management_authenticate',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'aarhus_kommune_management_deliver',
   ];
 
   $items['aarhus-kommune-management/users'] = [
@@ -29,6 +37,25 @@ function aarhus_kommune_management_menu() {
   ];
 
   return $items;
+}
+
+/**
+ * Authenticate.
+ */
+function aarhus_kommune_management_authenticate() {
+  try {
+    $controller = new AuthenticationController();
+
+    return $controller->handle();
+  }
+  catch (\Exception $exception) {
+    return [
+      'error' => [
+        'code' => $exception->getCode(),
+        'message' => $exception->getMessage(),
+      ]
+    ];
+  }
 }
 
 /**
@@ -69,4 +96,23 @@ function aarhus_kommune_management_deliver($result) {
 
   header('content-type: text/plain');
   echo 'Invalid request: Missing or invalid accept header';
+}
+
+/**
+ * Get setting.
+ */
+function _aarhus_kommune_management_get_setting($path = NULL, $default_value = NULL) {
+  $value = variable_get('aarhus_kommune_management');
+
+  if (NULL !== $path) {
+    $path = (array) $path;
+    foreach ($path as $step) {
+      if (!isset($value[$step])) {
+        return $default_value;
+      }
+      $value = $value[$step];
+    }
+  }
+
+  return $value;
 }

@@ -8,6 +8,12 @@ use Drupal\aarhus_kommune_management\Service\UserManager;
  * User controller.
  */
 class UserController {
+  /**
+   * The user manager.
+   *
+   * @var \Drupal\aarhus_kommune_management\Service\UserManager
+   */
+  private $userManager;
 
   /**
    * Constructor.
