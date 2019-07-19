@@ -6,7 +6,9 @@
  */
 
 use Drupal\aarhus_kommune_management\Controller\AuthenticationController;
+use Drupal\aarhus_kommune_management\Controller\DefaultController;
 use Drupal\aarhus_kommune_management\Controller\UserController;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Implements hook_menu().
@@ -22,15 +24,8 @@ function aarhus_kommune_management_menu() {
     'file' => 'aarhus_kommune_management.admin.inc',
   ];
 
-  $items['aarhus-kommune-management/authenticate'] = [
-    'page callback' => 'aarhus_kommune_management_authenticate',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-    'delivery callback' => 'aarhus_kommune_management_deliver',
-  ];
-
-  $items['aarhus-kommune-management/users'] = [
-    'page callback' => 'aarhus_kommune_management_users',
+  $items['aarhus-kommune-management'] = [
+    'page callback' => 'aarhus_kommune_management_router',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
     'delivery callback' => 'aarhus_kommune_management_deliver',
@@ -40,10 +35,46 @@ function aarhus_kommune_management_menu() {
 }
 
 /**
+ *
+ */
+function aarhus_kommune_management_router() {
+  $steps = arg();
+  array_shift($steps);
+
+  $controller = new DefaultController();
+
+  composer_manager_register_autoloader();
+  if (\count($steps) > 0) {
+    switch ($steps[0]) {
+      case 'authenticate':
+        $controller = new AuthenticationController();
+        break;
+
+      case 'users';
+        $controller = new UserController();
+        break;
+    }
+  }
+
+  try {
+    return $controller->handle();
+  }
+  catch (\Exception $exception) {
+    return [
+      'error' => [
+        'code' => $exception->getCode(),
+        'message' => $exception->getMessage(),
+      ]
+    ];
+  }
+}
+
+/**
  * Authenticate.
  */
 function aarhus_kommune_management_authenticate() {
   try {
+    composer_manager_register_autoloader();
     $controller = new AuthenticationController();
 
     return $controller->handle();
@@ -63,6 +94,7 @@ function aarhus_kommune_management_authenticate() {
  */
 function aarhus_kommune_management_users() {
   try {
+    composer_manager_register_autoloader();
     $controller = new UserController();
 
     return $controller->handle();
@@ -82,6 +114,14 @@ function aarhus_kommune_management_users() {
  */
 function aarhus_kommune_management_deliver($result) {
   $accept = $_SERVER['HTTP_ACCEPT'];
+
+  if ($result instanceof ResponseInterface) {
+    foreach ($result->getHeaders() as $name => $value) {
+      header($name . ': ' . $value);
+    }
+    echo (string) $result->getBody();
+    exit;
+  }
 
   if (preg_match('@\*/\*|application/json@', $accept)) {
     drupal_json_output($result);

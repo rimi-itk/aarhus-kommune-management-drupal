@@ -15,10 +15,27 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
 
   $client_id = _aarhus_kommune_management_get_setting(['authentication', 'client_id']);
   $client_secret = _aarhus_kommune_management_get_setting(['authentication', 'client_secret']);
+  $site_dir = getcwd() . '/' . conf_path();
 
   $form['aarhus_kommune_management']['authentication'] = [
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
+
+    'private_key' => [
+      '#type' => 'textfield',
+      '#title' => t('Private key'),
+      '#default_value' => _aarhus_kommune_management_get_setting(['authentication', 'private_key'], 'file://' . $site_dir . '/private.key'),
+      '#description' => t('Private key file path (file://…)'),
+      '#required' => TRUE,
+    ],
+
+    'public_key' => [
+      '#type' => 'textfield',
+      '#title' => t('Public key'),
+      '#default_value' => _aarhus_kommune_management_get_setting(['authentication', 'public_key'], 'file://' . $site_dir . '/public.key'),
+      '#description' => t('Public key file path (file://…)'),
+      '#required' => TRUE,
+    ],
 
     'client_id' => [
       '#type' => 'textfield',
@@ -27,6 +44,7 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
       '#description' => t('Client id'),
       '#required' => TRUE,
     ],
+
     'client_secret' => [
       '#type' => 'textfield',
       '#title' => t('Client secret'),
@@ -57,6 +75,19 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
           'JSON',
         ]),
       ],
+
+      'curl' => [
+        '#type' => 'textarea',
+        '#default_value' => implode(PHP_EOL, [
+          'curl ' . $authenticate_url . ' \\',
+          '--header "content-type: application/x-www-form-urlencoded" \\',
+          // '--header "Accept: 1.0" \\',
+          '--data-urlencode "grant_type=client_credentials" \\',
+          '--data-urlencode "client_id=' . $client_id . '" \\',
+          '--data-urlencode "client_secret=' . $client_secret . '" \\',
+          '--data-urlencode "scope=data:write"',
+        ]),
+      ]
     ];
   }
 
