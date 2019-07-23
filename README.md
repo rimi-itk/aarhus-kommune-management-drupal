@@ -11,7 +11,7 @@ Downloading the code:
 ```sh
 cd «drupal root»
 mkdir -p sites/all/modules/contrib/
-git clone --branch=master https://github.com/rimi-itk/aarhus-kommune-management-drupal-7 sites/all/modules/contrib/aarhus_kommune_management
+git clone --branch=7.x https://github.com/rimi-itk/aarhus-kommune-management-drupal sites/all/modules/contrib/aarhus_kommune_management
 ```
 
 Installing the module:
