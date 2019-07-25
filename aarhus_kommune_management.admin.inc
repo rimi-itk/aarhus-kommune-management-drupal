@@ -5,6 +5,8 @@
  * Admin stuff.
  */
 
+use GuzzleHttp\Client;
+
 /**
  * Admin form.
  */
@@ -25,7 +27,7 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
       '#type' => 'textfield',
       '#title' => t('Private key'),
       '#default_value' => _aarhus_kommune_management_get_setting(['authentication', 'private_key'], 'file://' . $site_dir . '/private.key'),
-      '#description' => t('Private key file path (file://…)'),
+      '#description' => t('Private key file path'),
       '#required' => TRUE,
     ],
 
@@ -33,7 +35,7 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
       '#type' => 'textfield',
       '#title' => t('Public key'),
       '#default_value' => _aarhus_kommune_management_get_setting(['authentication', 'public_key'], 'file://' . $site_dir . '/public.key'),
-      '#description' => t('Public key file path (file://…)'),
+      '#description' => t('Public key file path'),
       '#required' => TRUE,
     ],
 
@@ -99,26 +101,31 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
     ];
   }
 
-  $form['aarhus_kommune_management']['users'] = [
+  $form['aarhus_kommune_management']['test'] = [
     '#type' => 'fieldset',
-    '#title' => t('Users'),
+    '#title' => t('Test'),
 
     'test_get_users' => [
-      'button' => [
-        '#type' => 'button',
-        '#value' => t('Get users'),
-        '#attributes' => [
-          'formaction' => '/aarhus-kommune-management/users',
-          'formmethod' => 'get',
-          'formtarget' => 'test-users',
-        ],
-      ],
-
-      'target' => [
-        '#markup' => '<iframe style="width: 100%; height: 10em; border: solid 1px #aaa" name="test-users"></iframe>',
+      'link' => [
+        '#markup' => l(t('Get users'), 'admin/config/aarhus-kommune-management/test/users'),
       ],
     ],
   ];
 
+  $form['#validate'][] = 'aarhus_kommune_management_admin_form_validate';
+
   return system_settings_form($form);
+}
+
+/**
+ * Validate form.
+ */
+function aarhus_kommune_management_admin_form_validate($form, &$form_state) {
+  $authentication_settings = $form_state['values']['aarhus_kommune_management']['authentication'];
+  if (!is_readable($authentication_settings['private_key'])) {
+    form_set_error('aarhus_kommune_management][authentication][private_key', t('Private key file, %file, does not exist or cannot be read', ['%file' => $authentication_settings['private_key']]));
+  }
+  if (!is_readable($authentication_settings['public_key'])) {
+    form_set_error('aarhus_kommune_management][authentication][public_key', t('Public key file, %file, does not exist or cannot be read', ['%file' => $authentication_settings['public_key']]));
+  }
 }

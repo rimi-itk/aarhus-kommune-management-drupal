@@ -8,6 +8,7 @@
 use Drupal\aarhus_kommune_management\Controller\SecurityController;
 use Drupal\aarhus_kommune_management\Controller\DefaultController;
 use Drupal\aarhus_kommune_management\Controller\UserController;
+use Drupal\aarhus_kommune_management\Controller\Admin\TestController as AdminTestController;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -15,13 +16,20 @@ use Psr\Http\Message\ResponseInterface;
  */
 function aarhus_kommune_management_menu() {
   $items['admin/config/aarhus-kommune-management'] = [
-    'title' => 'aarhus-kommune-management/settings',
+    'title' => 'aarhus-kommune-management',
     'description' => 'Settings for aarhus-kommune-management',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['aarhus_kommune_management_admin_form'],
     'access arguments' => ['administer site configuration'],
     'type' => MENU_NORMAL_ITEM,
     'file' => 'aarhus_kommune_management.admin.inc',
+  ];
+
+  $items['admin/config/aarhus-kommune-management/test'] = [
+    'page callback' => 'aarhus_kommune_management_router_admin',
+    'access arguments' => ['administer site configuration'],
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'aarhus_kommune_management_deliver',
   ];
 
   $items['aarhus-kommune-management'] = [
@@ -70,34 +78,19 @@ function aarhus_kommune_management_router() {
 }
 
 /**
- * Authenticate.
+ * Admin router.
  */
-function aarhus_kommune_management_authenticate() {
+function aarhus_kommune_management_router_admin() {
+  $steps = arg();
+  array_shift($steps);
+
+  $controller = new AdminTestController();
+
+  composer_manager_register_autoloader();
+
   try {
-    composer_manager_register_autoloader();
-    $controller = new SecurityController();
-
-    return $controller->handle();
-  }
-  catch (\Exception $exception) {
-    return [
-      'error' => [
-        'code' => $exception->getCode(),
-        'message' => $exception->getMessage(),
-      ]
-    ];
-  }
-}
-
-/**
- * Users.
- */
-function aarhus_kommune_management_users() {
-  try {
-    composer_manager_register_autoloader();
-    $controller = new UserController();
-
-    return $controller->handle();
+    $path = array_slice($steps, 3);
+    return $controller->handle($path);
   }
   catch (\Exception $exception) {
     return [
