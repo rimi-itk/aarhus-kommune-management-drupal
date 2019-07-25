@@ -1,14 +1,14 @@
 <?php
 
-namespace Drupal\aarhus_kommune_management\Repositories;
+namespace Drupal\aarhus_kommune_management\Security\Repositories;
 
-use Drupal\aarhus_kommune_management\Entities\AccessTokenEntity;
+use Drupal\aarhus_kommune_management\Security\Entities\AccessTokenEntity;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 
 /**
- *
+ * Access token repository.
  */
 class AccessTokenRepository implements AccessTokenRepositoryInterface {
 

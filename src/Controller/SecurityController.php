@@ -2,24 +2,24 @@
 
 namespace Drupal\aarhus_kommune_management\Controller;
 
-use Drupal\aarhus_kommune_management\Service\AuthenticationManager;
+use Drupal\aarhus_kommune_management\Security\SecurityManager;
 
 /**
  * Authentication controller.
  */
-class AuthenticationController {
+class SecurityController {
   /**
    * The authentication manager.
    *
-   * @var \Drupal\aarhus_kommune_management\Service\AuthenticationManager
+   * @var \Drupal\aarhus_kommune_management\Security\SecutiryManager
    */
-  private $authenticationManager;
+  private $securityManager;
 
   /**
    * Constructor.
    */
   public function __construct() {
-    $this->authenticationManager = new AuthenticationManager();
+    $this->securityManager = new SecurityManager();
   }
 
   /**
@@ -40,7 +40,7 @@ class AuthenticationController {
   public function authenticate() {
     $payload = json_decode(file_get_contents('php://input'), TRUE);
 
-    return $this->authenticationManager->createToken($payload);
+    return $this->securityManager->createToken($payload);
   }
 
 }

@@ -23,7 +23,7 @@ drush --yes pm-enable aarhus_kommune_management
 
 Configuration:
 
-`admin/config/aarhus-kommune-management/users`
+`admin/config/aarhus-kommune-management`
 
 ```sh
 openssl genrsa -out private.key 2048

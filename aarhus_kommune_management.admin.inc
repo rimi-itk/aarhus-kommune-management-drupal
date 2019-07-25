@@ -37,6 +37,14 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
       '#required' => TRUE,
     ],
 
+    'encryption_key' => [
+      '#type' => 'textfield',
+      '#title' => t('Encryption key'),
+      '#default_value' => _aarhus_kommune_management_get_setting(['authentication', 'encryption_key'], base64_encode(random_bytes(32))),
+      '#description' => t('Encryption key'),
+      '#required' => TRUE,
+    ],
+
     'client_id' => [
       '#type' => 'textfield',
       '#title' => t('Client id'),
@@ -69,7 +77,7 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
             'client_id' => $client_id,
             'client_secret' => $client_secret,
             'grant_type' => 'client_credentials',
-            // 'scope' => 'data:read',
+            // 'scope' => 'data:read',.
             'scope' => 'data:write',
           ], JSON_PRETTY_PRINT),
           'JSON',
@@ -81,7 +89,7 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
         '#default_value' => implode(PHP_EOL, [
           'curl ' . $authenticate_url . ' \\',
           '--header "content-type: application/x-www-form-urlencoded" \\',
-          // '--header "Accept: 1.0" \\',
+          // '--header "Accept: 1.0" \\',.
           '--data-urlencode "grant_type=client_credentials" \\',
           '--data-urlencode "client_id=' . $client_id . '" \\',
           '--data-urlencode "client_secret=' . $client_secret . '" \\',

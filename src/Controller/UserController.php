@@ -2,9 +2,8 @@
 
 namespace Drupal\aarhus_kommune_management\Controller;
 
-use Drupal\aarhus_kommune_management\Service\AuthenticationManager;
+use Drupal\aarhus_kommune_management\Security\SecurityManager;
 use Drupal\aarhus_kommune_management\Service\UserManager;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\ServerRequest;
 
 /**
@@ -21,16 +20,16 @@ class UserController {
   /**
    * The authentication manager.
    *
-   * @var \Drupal\aarhus_kommune_management\Service\AuthenticationManager
+   * @var \Drupal\aarhus_kommune_management\Security\SecurityManager
    */
-  private $authenticationManager;
+  private $securityManager;
 
   /**
    * Constructor.
    */
   public function __construct() {
     $this->userManager = new UserManager();
-    $this->authenticationManager = new AuthenticationManager();
+    $this->securityManager = new SecurityManager();
   }
 
   /**
@@ -57,7 +56,7 @@ class UserController {
 
     $users = array_values(array_map([$this->userManager, 'serializeUser'], $data));
 
-    return ['users' => $users];
+    return ['data' => $users];
   }
 
   /**
@@ -91,10 +90,10 @@ class UserController {
   }
 
   /**
-   *
+   * Authenticate.
    */
   protected function authenticate() {
-    return $this->authenticationManager->validateToken();
+    return $this->securityManager->validateToken();
   }
 
 }

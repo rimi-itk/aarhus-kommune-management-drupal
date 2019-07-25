@@ -5,7 +5,7 @@
  * Module file for aarhus_kommune_management.
  */
 
-use Drupal\aarhus_kommune_management\Controller\AuthenticationController;
+use Drupal\aarhus_kommune_management\Controller\SecurityController;
 use Drupal\aarhus_kommune_management\Controller\DefaultController;
 use Drupal\aarhus_kommune_management\Controller\UserController;
 use Psr\Http\Message\ResponseInterface;
@@ -35,7 +35,7 @@ function aarhus_kommune_management_menu() {
 }
 
 /**
- *
+ * Router.
  */
 function aarhus_kommune_management_router() {
   $steps = arg();
@@ -47,7 +47,7 @@ function aarhus_kommune_management_router() {
   if (\count($steps) > 0) {
     switch ($steps[0]) {
       case 'authenticate':
-        $controller = new AuthenticationController();
+        $controller = new SecurityController();
         break;
 
       case 'users';
@@ -75,7 +75,7 @@ function aarhus_kommune_management_router() {
 function aarhus_kommune_management_authenticate() {
   try {
     composer_manager_register_autoloader();
-    $controller = new AuthenticationController();
+    $controller = new SecurityController();
 
     return $controller->handle();
   }
@@ -123,19 +123,8 @@ function aarhus_kommune_management_deliver($result) {
     exit;
   }
 
-  if (preg_match('@\*/\*|application/json@', $accept)) {
-    drupal_json_output($result);
-    exit;
-  }
-
-  if (preg_match('@application/xml@', $accept)) {
-    header('content-type: application/xml');
-    echo format_xml_elements(['result' => $result]);
-    exit;
-  }
-
-  header('content-type: text/plain');
-  echo 'Invalid request: Missing or invalid accept header';
+  drupal_json_output($result);
+  exit;
 }
 
 /**

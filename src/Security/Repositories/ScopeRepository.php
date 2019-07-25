@@ -1,13 +1,13 @@
 <?php
 
-namespace Drupal\aarhus_kommune_management\Repositories;
+namespace Drupal\aarhus_kommune_management\Security\Repositories;
 
-use Drupal\aarhus_kommune_management\Entities\ScopeEntity;
+use Drupal\aarhus_kommune_management\Security\Entities\ScopeEntity;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 
 /**
- *
+ * Scope repository.
  */
 class ScopeRepository implements ScopeRepositoryInterface {
 
