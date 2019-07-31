@@ -50,22 +50,23 @@ function aarhus_kommune_management_router() {
   $steps = arg();
   array_shift($steps);
 
-  $controller = new DefaultController();
+  $controllerClass = DefaultController::class;
 
   composer_manager_register_autoloader();
   if (\count($steps) > 0) {
     switch ($steps[0]) {
       case 'authenticate':
-        $controller = new SecurityController();
+        $controllerClass = SecurityController::class;
         break;
 
       case 'users';
-        $controller = new UserController();
+        $controllerClass = UserController::class;
         break;
     }
   }
 
   try {
+    $controller = call_user_func([$controllerClass, 'create']);
     return $controller->handle();
   }
   catch (\Exception $exception) {
@@ -85,7 +86,7 @@ function aarhus_kommune_management_router_admin() {
   $steps = arg();
   array_shift($steps);
 
-  $controller = new AdminTestController();
+  $controller = AdminTestController::create();
 
   composer_manager_register_autoloader();
 

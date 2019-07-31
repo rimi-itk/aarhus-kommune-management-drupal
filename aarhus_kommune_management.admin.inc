@@ -5,8 +5,7 @@
  * Admin stuff.
  */
 
-use GuzzleHttp\Client;
-use Drupal\aarhus_kommune_management\Service\UserManager;
+use Drupal\aarhus_kommune_management\Management\UserManager;
 
 /**
  * Admin form.
@@ -121,7 +120,7 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
       '#type' => 'textfield',
       '#title' => t('User manager class'),
       '#default_value' => _aarhus_kommune_management_get_setting(['advanced', 'user_manager_class'], UserManager::class),
-      '#description' => t('Class used for managing users.'),
+      '#description' => t('Class used for managing users. (default: %default).', ['%default' => UserManager::class]),
     ],
   ];
 
@@ -145,7 +144,18 @@ function aarhus_kommune_management_admin_form_validate($form, &$form_state) {
 
   $advanced_settings = $form_state['values']['aarhus_kommune_management']['advanced'];
   $prefix = 'aarhus_kommune_management][advanced][';
-  if (!class_exists($advanced_settings['user_manager_class'])) {
-    form_set_error($prefix . 'user_manager_class', t('Class %class does not exist', ['%class' => $advanced_settings['user_manager_class']]));
+  $class = $advanced_settings['user_manager_class'];
+  if (!empty($class)) {
+    if (!class_exists($class)) {
+      form_set_error($prefix . 'user_manager_class',
+        t('Class %class does not exist', ['%class' => $class]));
+    }
+    else {
+      if (!is_a($class, UserManager::class, TRUE)) {
+        form_set_error($prefix . 'user_manager_class',
+          t('%class is not a subclass of %super_class',
+            ['%class' => $class, '%super_class' => UserManager::class]));
+      }
+    }
   }
 }

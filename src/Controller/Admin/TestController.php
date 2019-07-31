@@ -2,12 +2,13 @@
 
 namespace Drupal\aarhus_kommune_management\Controller\Admin;
 
+use Drupal\aarhus_kommune_management\Controller\ControllerBase;
 use GuzzleHttp\Client;
 
 /**
  * Admin test controller.
  */
-class TestController {
+class TestController extends ControllerBase {
 
   /**
    * Handle.

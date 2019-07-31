@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aarhus_kommune_management\Service;
+namespace Drupal\aarhus_kommune_management\Management;
 
 /**
  * User manager.
@@ -10,14 +10,11 @@ class UserManager {
   const NOT_IMPLEMENTED = 'aarhus_kommune_management_not_implemented';
 
   /**
-   * Key => user property.
-   *
-   * @var array
+   * Create an instance of the manager.
    */
-  private static $properties = [
-    'email' => 'mail',
-    'username' => 'name',
-  ];
+  public static function create() {
+    return new static();
+  }
 
   /**
    * Get users.
@@ -117,18 +114,17 @@ class UserManager {
    * Serialize user.
    */
   public function serializeUser($user) {
-    $hook = 'aarhus_kommune_management_user_serialize';
-    if (!empty(module_implements($hook))) {
-      return module_invoke_all($hook, $user);
+    $result = $this->invokeOne('aarhus_kommune_management_user_serialize', $user);
+    if (self::NOT_IMPLEMENTED !== $result) {
+      return $result;
     }
 
     $data = [
-      'uuid' => $user->aarhus_kommune_management_uuid ?? NULL,
+      'uuid' => $user->aarhus_kommune_management_uuid ?: NULL,
+      'email-address' => $user->mail,
     ];
 
-    foreach (self::$properties as $key => $property) {
-      $data[$key] = $user->{$property};
-    }
+    drupal_alter('aarhus_kommune_management_user_serialize', $data, $user);
 
     return $data;
   }
@@ -141,11 +137,13 @@ class UserManager {
    */
   public function loadUsers(array $uids = []) {
     $hook = 'aarhus_kommune_management_user_list';
-    if (!empty(module_implements($hook))) {
-      return module_invoke_all($hook);
+    $modules = module_implements($hook);
+    if (!empty($modules)) {
+      $users = module_invoke_all($hook, $uids);
     }
-
-    $users = user_load_multiple($uids, ['status' => 1]);
+    else {
+      $users = user_load_multiple($uids, ['status' => 1]);
+    }
 
     return $this->addUuids($users);
   }
@@ -215,6 +213,27 @@ class UserManager {
     }
 
     return $users;
+  }
+
+  /**
+   * Invoke a single implementation (the one with highest priority) of a hook.
+   *
+   * @param string $hook
+   *   The hook to invoke.
+   *
+   * @return mixed|string
+   *   The result of invoking the hook if an implementation exists. Otherwise self::NOT_IMPLEMENTED.
+   */
+  private function invokeOne($hook) {
+    $modules = module_implements($hook);
+    if (empty($modules)) {
+      return self::NOT_IMPLEMENTED;
+    }
+
+    $module = reset($modules);
+    $args = func_get_args();
+    array_unshift($args, $module);
+    return call_user_func_array('module_invoke', $args);
   }
 
 }

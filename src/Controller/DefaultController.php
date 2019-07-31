@@ -5,7 +5,7 @@ namespace Drupal\aarhus_kommune_management\Controller;
 /**
  * Default controller.
  */
-class DefaultController {
+class DefaultController extends ControllerBase {
 
   /**
    * Handler.

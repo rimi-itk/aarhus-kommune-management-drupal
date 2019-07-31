@@ -7,7 +7,7 @@ use Drupal\aarhus_kommune_management\Security\SecurityManager;
 /**
  * Authentication controller.
  */
-class SecurityController {
+class SecurityController extends ControllerBase {
   /**
    * The authentication manager.
    *
@@ -18,8 +18,17 @@ class SecurityController {
   /**
    * Constructor.
    */
-  public function __construct() {
-    $this->securityManager = new SecurityManager();
+  public function __construct(SecurityManager $securityManager) {
+    $this->securityManager = $securityManager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create() {
+    return new static(
+      new SecurityManager()
+    );
   }
 
   /**

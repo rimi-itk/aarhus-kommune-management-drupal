@@ -3,13 +3,13 @@
 namespace Drupal\aarhus_kommune_management\Controller;
 
 use Drupal\aarhus_kommune_management\Security\SecurityManager;
-use Drupal\aarhus_kommune_management\Service\UserManager;
+use Drupal\aarhus_kommune_management\Management\UserManager;
 use GuzzleHttp\Psr7\ServerRequest;
 
 /**
  * User controller.
  */
-class UserController {
+class UserController extends ControllerBase {
   /**
    * The user manager.
    *
@@ -27,9 +27,20 @@ class UserController {
   /**
    * Constructor.
    */
-  public function __construct() {
-    $this->userManager = new UserManager();
-    $this->securityManager = new SecurityManager();
+  public function __construct(UserManager $userManager, SecurityManager $securityManager) {
+    $this->userManager = $userManager;
+    $this->securityManager = $securityManager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create() {
+    $userManagerClass = _aarhus_kommune_management_get_setting(['advanced', 'user_manager_class'], UserManager::class);
+    return new static(
+      call_user_func([$userManagerClass, 'create']),
+      new SecurityManager()
+    );
   }
 
   /**
