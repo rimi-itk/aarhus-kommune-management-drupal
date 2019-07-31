@@ -6,6 +6,7 @@
  */
 
 use GuzzleHttp\Client;
+use Drupal\aarhus_kommune_management\Service\UserManager;
 
 /**
  * Admin form.
@@ -112,6 +113,18 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
     ],
   ];
 
+  $form['aarhus_kommune_management']['advanced'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Advanced'),
+
+    'user_manager_class' => [
+      '#type' => 'textfield',
+      '#title' => t('User manager class'),
+      '#default_value' => _aarhus_kommune_management_get_setting(['advanced', 'user_manager_class'], UserManager::class),
+      '#description' => t('Class used for managing users.'),
+    ],
+  ];
+
   $form['#validate'][] = 'aarhus_kommune_management_admin_form_validate';
 
   return system_settings_form($form);
@@ -122,10 +135,17 @@ function aarhus_kommune_management_admin_form($form, &$form_state) {
  */
 function aarhus_kommune_management_admin_form_validate($form, &$form_state) {
   $authentication_settings = $form_state['values']['aarhus_kommune_management']['authentication'];
+  $prefix = 'aarhus_kommune_management][authentication][';
   if (!is_readable($authentication_settings['private_key'])) {
-    form_set_error('aarhus_kommune_management][authentication][private_key', t('Private key file, %file, does not exist or cannot be read', ['%file' => $authentication_settings['private_key']]));
+    form_set_error($prefix . 'private_key', t('Private key file, %file, does not exist or cannot be read', ['%file' => $authentication_settings['private_key']]));
   }
   if (!is_readable($authentication_settings['public_key'])) {
-    form_set_error('aarhus_kommune_management][authentication][public_key', t('Public key file, %file, does not exist or cannot be read', ['%file' => $authentication_settings['public_key']]));
+    form_set_error($prefix . 'public_key', t('Public key file, %file, does not exist or cannot be read', ['%file' => $authentication_settings['public_key']]));
+  }
+
+  $advanced_settings = $form_state['values']['aarhus_kommune_management']['advanced'];
+  $prefix = 'aarhus_kommune_management][advanced][';
+  if (!class_exists($advanced_settings['user_manager_class'])) {
+    form_set_error($prefix . 'user_manager_class', t('Class %class does not exist', ['%class' => $advanced_settings['user_manager_class']]));
   }
 }

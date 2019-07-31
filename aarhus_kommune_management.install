@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for aarhus_kommune_management.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function aarhus_kommune_management_schema() {
+  $schema['aarhus_kommune_management_users'] = [
+    'description' => 'Aarhus kommune management users.',
+    'fields' => [
+      'uuid' => [
+        'description' => 'The universally unique identifier for a user.',
+        'type' => 'char',
+        'length' => 36,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'description' => 'The user id.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+  ];
+
+  return $schema;
+}
