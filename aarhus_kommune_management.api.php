@@ -42,7 +42,7 @@ function hook_aarhus_kommune_management_user_create($data) {
  * @return mixed
  *   @TODO: What to return?
  */
-function hook_aarhus_kommune_management_user_update($user, $data) {
+function hook_aarhus_kommune_management_user_update($user, array $data) {
 
 }
 

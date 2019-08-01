@@ -30,13 +30,26 @@ class UserManager {
     if (!isset($data['uuid'])) {
       return 'invalid data';
     }
+    $uuid = $data['uuid'];
 
-    $hook = 'aarhus_kommune_management_user_create';
-    if (!empty(module_implements($hook))) {
-      return module_invoke_all($hook, $data);
+    $user = self::loadUserByUuid($uuid);
+    if (!empty($user)) {
+      return [$uuid => 'User already exists'];
     }
 
-    return [$data['uuid'] => 'Do not know how to create user'];
+    $hook = 'aarhus_kommune_management_user_create';
+    $modules = module_implements($hook);
+    if (!empty($modules)) {
+      foreach ($modules as $module) {
+        $user = module_invoke($module, $hook, $data);
+        if (NULL !== $user) {
+          $this->setUuid($user, $uuid);
+          break;
+        }
+      }
+    }
+
+    return [$data['uuid'] => !empty($user) ? 'User created' : 'Do not know how to create user'];
 
     $user = (object) [];
 
@@ -62,19 +75,26 @@ class UserManager {
     if (!isset($data['uuid'])) {
       return 'invalid data';
     }
+    $uuid = $data['uuid'];
 
-    $user = self::loadUserByUuid($data['uuid']);
-
-    if (FALSE === $user) {
-      return [$data['uuid'] => 'No such user'];
+    $user = self::loadUserByUuid($uuid);
+    if (empty($user)) {
+      return [$uuid => 'No such user'];
     }
 
+    $result = NULL;
     $hook = 'aarhus_kommune_management_user_update';
-    if (!empty(module_implements($hook))) {
-      return module_invoke_all($hook, $user, $data);
+    $modules = module_implements($hook);
+    if (!empty($modules)) {
+      foreach ($modules as $module) {
+        $result = module_invoke($module, $hook, $user, $data);
+        if (!empty($result)) {
+          break;
+        }
+      }
     }
 
-    return [$data['uuid'] => 'Do not know how to update user'];
+    return [$uuid => !empty($result) ? 'User updated' : 'Do not know how to update user'];
 
     foreach (self::$properties as $key => $property) {
       if (isset($data[$key])) {
@@ -93,19 +113,25 @@ class UserManager {
     if (!isset($data['uuid'])) {
       return 'invalid data';
     }
+    $uuid = $data['uuid'];
 
-    $user = self::loadUserByUuid($data['uuid']);
-
-    if (FALSE === $user) {
-      return [$data['uuid'] => 'No such user'];
+    $user = self::loadUserByUuid($uuid);
+    if (empty($user)) {
+      return [$uuid => 'No such user'];
     }
 
     $hook = 'aarhus_kommune_management_user_delete';
-    if (!empty(module_implements($hook))) {
-      return module_invoke_all($hook, $user);
+    $modules = module_implements($hook);
+    if (!empty($modules)) {
+      foreach ($modules as $module) {
+        $result = module_invoke($module, $hook, $user, $data);
+        if (!empty($result)) {
+          return [$uuid => 'User deleted'];
+        }
+      }
     }
 
-    return [$data['uuid'] => 'Do not know how to delete user'];
+    return [$uuid => 'Do not know how to delete user'];
 
     // user_delete($user);
   }
@@ -153,14 +179,26 @@ class UserManager {
    *
    * @param array $uuids
    *   The uuids.
+   * @param array $conditions
+   *   Optionals conditions on `user` (the `user` table).
    *
    * @return object[]
    *   The users.
    */
-  public static function loadUsersByUuid(array $uuids) {
-    $map = db_select('aarhus_kommune_management_users', 'u')
+  public static function loadUsersByUuid(array $uuids, array $conditions = []) {
+    $query = db_select('aarhus_kommune_management_users', 'u')
+      ->fields('u', ['uid', 'uuid']);
+
+    if (!empty($conditions)) {
+      $query->join('users', 'user', 'user.uid = u.uid');
+      foreach ($conditions as $condition) {
+        call_user_func_array([$query, 'condition'], $condition);
+      }
+    }
+
+    $map = $query
       ->condition('u.uuid', $uuids)
-      ->fields('u', ['uid', 'uuid'])
+      // ->condition('user.status', 1)
       ->execute()
       ->fetchAllKeyed();
 
@@ -213,6 +251,25 @@ class UserManager {
     }
 
     return $users;
+  }
+
+  /**
+   * Set uuid on user.
+   *
+   * @param object $user
+   *   The user.
+   * @param string $uuid
+   *   The uuid.
+   *
+   * @throws \Exception
+   */
+  private function setUuid($user, $uuid) {
+    return db_insert('aarhus_kommune_management_users')
+      ->fields([
+        'uid' => $user->uid,
+        'uuid' => $uuid,
+      ])
+      ->execute();
   }
 
   /**

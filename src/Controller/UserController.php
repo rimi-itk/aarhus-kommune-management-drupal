@@ -82,10 +82,10 @@ class UserController extends ControllerBase {
     if (isset($payload['users'])) {
       $commands = $payload['users'];
 
-      if (isset($commands['create']) && is_array($commands['create'])) {
-        foreach ($commands['create'] as $item) {
-          $user = $this->userManager->createUser($item);
-          $result['create'][] = $user;
+      if (isset($commands['delete']) && is_array($commands['delete'])) {
+        foreach ($commands['delete'] as $item) {
+          $user = $this->userManager->deleteUser($item);
+          $result['delete'][] = $user;
         }
       }
 
@@ -95,9 +95,16 @@ class UserController extends ControllerBase {
           $result['update'][] = $user;
         }
       }
+
+      if (isset($commands['create']) && is_array($commands['create'])) {
+        foreach ($commands['create'] as $item) {
+          $user = $this->userManager->createUser($item);
+          $result['create'][] = $user;
+        }
+      }
     }
 
-    return $result;
+    return ['users' => $result];
   }
 
   /**
