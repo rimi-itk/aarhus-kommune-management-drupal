@@ -26,8 +26,8 @@ class UserManager {
   /**
    * Create user.
    */
-  public function createUser(array $data) {
-    if (!isset($data['uuid'])) {
+  public function createUser($data) {
+    if (!is_array($data) || !isset($data['uuid'])) {
       return 'invalid data';
     }
     $uuid = $data['uuid'];
