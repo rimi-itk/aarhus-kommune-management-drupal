@@ -108,8 +108,6 @@ function aarhus_kommune_management_router_admin() {
  * Deliver result.
  */
 function aarhus_kommune_management_deliver($result) {
-  $accept = $_SERVER['HTTP_ACCEPT'];
-
   if ($result instanceof ResponseInterface) {
     foreach ($result->getHeaders() as $name => $value) {
       header($name . ': ' . $value);

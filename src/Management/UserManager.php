@@ -168,10 +168,18 @@ class UserManager {
       $users = module_invoke_all($hook, $uids);
     }
     else {
-      $users = user_load_multiple($uids, ['status' => 1]);
+      $conditions = [
+        ['user.status', 1],
+      ];
+
+      if (!empty($uids)) {
+        $conditions[] = ['user.uid', $uids];
+      }
+
+      $users = $this->loadUsersByUuid([], $conditions);
     }
 
-    return $this->addUuids($users);
+    return self::addUuids($users);
   }
 
   /**
@@ -185,7 +193,7 @@ class UserManager {
    * @return object[]
    *   The users.
    */
-  public static function loadUsersByUuid(array $uuids, array $conditions = []) {
+  public static function loadUsersByUuid(array $uuids = NULL, array $conditions = []) {
     $query = db_select('aarhus_kommune_management_users', 'u')
       ->fields('u', ['uid', 'uuid']);
 
@@ -196,9 +204,11 @@ class UserManager {
       }
     }
 
+    if (!empty($uuids)) {
+      $query->condition('u.uuid', $uuids);
+    }
+
     $map = $query
-      ->condition('u.uuid', $uuids)
-      // ->condition('user.status', 1)
       ->execute()
       ->fetchAllKeyed();
 
@@ -234,6 +244,10 @@ class UserManager {
    *   The enriched users.
    */
   public static function addUuids(array $users, array $map = NULL) {
+    if (empty($users)) {
+      return $users;
+    }
+
     $uids = array_map(function ($user) {
       return $user->uid;
     }, $users);
