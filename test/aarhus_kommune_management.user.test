@@ -1,0 +1,211 @@
+<?php
+
+/**
+ * @file
+ * Tests for aarhus_kommune_management.
+ */
+
+use GuzzleHttp\Client;
+
+/**
+ *
+ */
+class AarhusKommuneManagementUserTestCase extends SiteTesting {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return [
+      'name' => 'Aarhus kommune management',
+      'description' => 'Test stuff.',
+      'group' => 'Aarhus kommune management',
+    ];
+  }
+
+  /**
+   * Get users.
+   */
+  public function testGetUsers() {
+    $this->authenticate();
+    $result = $this->get('aarhus-kommune-management/users');
+
+    $this->assertEqual(['data' => []], $result);
+  }
+
+  /**
+   * Create user.
+   */
+  public function testCreateUser() {
+    $token = $this->authenticate();
+
+    $result = $this->post(
+      'aarhus-kommune-management/users',
+      [
+        'json' => [
+          'users' => [
+            'create' => [
+              [
+                'uuid' => 'user:001',
+                'email' => 'user001@example.com',
+              ],
+            ],
+          ],
+        ],
+      ]
+    );
+
+    $this->assertTrue(isset($result['users']['create'][0]));
+    $this->assertEqual($result['users']['create'][0], ['user:001' => 'Do not know how to create user']);
+  }
+
+  /**
+   * Update user.
+   */
+  public function testUpdateUser() {
+    $this->authenticate();
+
+    $result = $this->post(
+      'aarhus-kommune-management/users',
+      [
+        'json' => [
+          'users' => [
+            'update' => [
+              [
+                'uuid' => 'user:001',
+                'email' => 'user001@example.com',
+              ],
+            ],
+          ],
+        ]
+      ]);
+
+    $this->assertTrue(isset($result['users']['update'][0]));
+    $this->assertEqual($result['users']['update'][0], ['user:001' => 'No such user']);
+  }
+
+  /**
+   * Delete user.
+   */
+  public function testDeleteUser() {
+    $this->authenticate();
+
+    $result = $this->post(
+      'aarhus-kommune-management/users',
+      [
+        'json' => [
+          'users' => [
+            'delete' => [
+              [
+                'uuid' => 'user:001',
+              ],
+            ],
+          ],
+        ]
+      ]);
+
+    $this->assertTrue(isset($result['users']['delete'][0]));
+    $this->assertEqual($result['users']['delete'][0], ['user:001' => 'No such user']);
+  }
+
+  /**
+   * Delete user.
+   */
+  public function testBatch() {
+    $this->authenticate();
+
+    $result = $this->post(
+      'aarhus-kommune-management/users',
+      [
+        'json' => [
+          'users' => [
+            'create' => [
+              [
+                'uuid' => 'user:003',
+              ],
+            ],
+            'update' => [
+              [
+                'uuid' => 'user:002',
+              ],
+            ],
+            'delete' => [
+              [
+                'uuid' => 'user:001',
+              ],
+            ],
+          ],
+        ]
+      ]);
+
+    $this->assertTrue(isset($result['users']['create'][0]));
+    $this->assertEqual($result['users']['create'][0], ['user:003' => 'Do not know how to create user']);
+
+    $this->assertTrue(isset($result['users']['update'][0]));
+    $this->assertEqual($result['users']['update'][0], ['user:002' => 'No such user']);
+
+    $this->assertTrue(isset($result['users']['delete'][0]));
+    $this->assertEqual($result['users']['delete'][0], ['user:001' => 'No such user']);
+  }
+
+  private $authorizationToken;
+
+  /**
+   *
+   */
+  private function authenticate($refresh = FALSE) {
+    if ($refresh) {
+      $this->authorizationToken = NULL;
+    }
+    if (NULL === $this->authorizationToken) {
+      $client_id = _aarhus_kommune_management_get_setting(['authentication', 'client_id']);
+      $client_secret = _aarhus_kommune_management_get_setting(['authentication', 'client_secret']);
+
+      $this->authorizationToken = $this->post('aarhus-kommune-management/authenticate', [
+        'form_params' => [
+          'grant_type' => 'client_credentials',
+          'client_id' => $client_id,
+          'client_secret' => $client_secret,
+          'scope' => 'data:write'
+        ],
+      ]);
+    }
+
+    if (NULL === $this->authorizationToken) {
+      throw new \RuntimeException('Cannot authenticate!');
+    }
+
+    return $this->authorizationToken;
+  }
+
+  /**
+   *
+   */
+  private function get($uri, array $options = []) {
+    return $this->request('GET', $uri, $options);
+  }
+
+  /**
+   *
+   */
+  private function post($uri, array $options = []) {
+    return $this->request('POST', $uri, $options);
+  }
+
+  /**
+   *
+   */
+  private function request($method, $uri, array $options = []) {
+    $uri = $this->getAbsoluteUrl($uri);
+
+    if (!isset($options['headers']['authorization']) && NULL !== $this->authorizationToken) {
+      $options['headers']['authorization'] = $this->authorizationToken['token_type'] . ' ' . $this->authorizationToken['access_token'];
+    }
+
+    $client = new Client();
+    $response = $client->request($method, $uri, $options);
+
+    return json_decode((string) $response->getBody(), TRUE);
+  }
+
+}

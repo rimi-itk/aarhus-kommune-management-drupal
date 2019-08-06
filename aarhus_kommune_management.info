@@ -6,3 +6,6 @@ configure = admin/config/services/aarhus-kommune-management
 
 dependencies[] = xautoload
 dependencies[] = composer_manager
+
+files[] = test/aarhus_kommune_management.test
+files[] = test/aarhus_kommune_management.user.test
