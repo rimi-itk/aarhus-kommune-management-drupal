@@ -1,0 +1,8 @@
+name = Aarhus kommune management – simple
+description = Simple implementation of Aarhus kommune management api
+core = 7.x
+package = Aarhus kommune
+
+dependencies[] = aarhus_kommune_management
+
+files[] = tests/aarhus_kommune_management_simple.user.test

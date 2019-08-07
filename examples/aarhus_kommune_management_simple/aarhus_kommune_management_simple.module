@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @file
+ * Module file for aarhus_kommune_management_simple.
+ */
+
+/**
+ * Implements hook_aarhus_kommune_management_user_create().
+ */
+function aarhus_kommune_management_simple_aarhus_kommune_management_user_create(
+  $data
+) {
+  $user = (object) [];
+
+  if (!empty($data['email-address'])) {
+    $user->name = $data['email-address'];
+    $user->mail = $data['email-address'];
+  }
+
+  if (!isset($user->name)) {
+    return NULL;
+  }
+
+  // Active.
+  $user->status = 1;
+
+  return user_save($user);
+}
+
+/**
+ * Implements hook_aarhus_kommune_management_user_update().
+ */
+function aarhus_kommune_management_simple_aarhus_kommune_management_user_update(
+  $user,
+  array $data
+) {
+  if (!empty($data['email-address'])) {
+    $user->name = $data['email-address'];
+    $user->mail = $data['email-address'];
+  }
+
+  return user_save($user);
+}
+
+/**
+ * Implements hook_aarhus_kommune_management_user_delete().
+ */
+function aarhus_kommune_management_simple_aarhus_kommune_management_user_delete(
+  $user
+) {
+  user_cancel([], $user->uid, 'user_cancel_delete');
+
+  $batch = &batch_get();
+  $batch['progressive'] = FALSE;
+  batch_process();
+
+  return TRUE;
+}

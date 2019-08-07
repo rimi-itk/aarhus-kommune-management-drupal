@@ -1,0 +1,149 @@
+<?php
+
+/**
+ * @file
+ * Tests for aarhus_kommune_management_simple.
+ */
+
+use Drupal\aarhus_kommune_management\Management\UserManager;
+
+/**
+ *
+ */
+class AarhusKommuneManagementSimpleUserTestCase extends SiteTesting {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return [
+      'name' => 'Aarhus kommune management – simple',
+      'description' => 'Test user management.',
+      'group' => 'Aarhus kommune management',
+    ];
+  }
+
+  /**
+   * Get users.
+   */
+  public function testGetUsers() {
+    $this->authenticate();
+    $result = $this->get('aarhus-kommune-management/users');
+
+    $this->assertEqual(['data' => []], $result);
+  }
+
+  /**
+   * Create user.
+   */
+  public function testCreateUser() {
+    $this->authenticate();
+
+    $result = $this->post(
+      'aarhus-kommune-management/users',
+      [
+        'json' => [
+          'users' => [
+            'create' => [
+              [
+                'uuid' => 'user-simple:001',
+                'email-address' => 'user-simple001@example.com',
+              ],
+              [
+                'uuid' => 'user-simple:002',
+// 'email-address' => 'user-simple002@example.com',.
+              ],
+              [
+                'uuid' => 'user-simple:003',
+                'email-address' => 'user-simple003@example.com',
+              ],
+            ],
+          ],
+        ],
+      ]
+    );
+
+    $this->assertTrue(isset($result['users']['create'][0]));
+    $this->assertEqual($result['users']['create'][0], ['user-simple:001' => 'User created']);
+
+    $this->assertTrue(isset($result['users']['create'][1]));
+    $this->assertEqual($result['users']['create'][1], ['user-simple:002' => 'Cannot create user']);
+
+    $this->assertTrue(isset($result['users']['create'][2]));
+    $this->assertEqual($result['users']['create'][2], ['user-simple:003' => 'User created']);
+
+    $result = $this->get('aarhus-kommune-management/users');
+    $users = $result['data'];
+    $this->assertEqual(2, count($users));
+  }
+
+  /**
+   * Update user.
+   */
+  public function testUpdateUser() {
+    $this->authenticate();
+
+    $result = $this->post(
+      'aarhus-kommune-management/users',
+      [
+        'json' => [
+          'users' => [
+            'update' => [
+              [
+                'uuid' => 'user-simple:001',
+                'email-address' => 'user-simple101@example.com',
+              ],
+            ],
+          ],
+        ]
+      ]);
+
+    $this->assertTrue(isset($result['users']['update'][0]));
+    $this->assertEqual($result['users']['update'][0], ['user-simple:001' => 'User updated']);
+
+    $user = UserManager::loadUserByUuid('user-simple:001');
+    $this->assertEqual('user-simple101@example.com', $user->mail);
+  }
+
+  /**
+   * Delete user.
+   */
+  public function testDeleteUser() {
+    $this->authenticate();
+
+    $result = $this->get('aarhus-kommune-management/users');
+    $users = $result['data'];
+    $numberOfUsersBefore = count($users);
+    $this->assert($numberOfUsersBefore > 0);
+
+    $result = $this->post(
+      'aarhus-kommune-management/users',
+      [
+        'json' => [
+          'users' => [
+            'delete' => [
+              [
+                'uuid' => 'user-simple:001',
+              ],
+              [
+                'uuid' => 'user-simple:003',
+              ],
+            ],
+          ],
+        ]
+      ]);
+
+    $this->assertTrue(isset($result['users']['delete'][0]));
+    $this->assertEqual($result['users']['delete'][0], ['user-simple:001' => 'User deleted']);
+
+    $this->assertTrue(isset($result['users']['delete'][1]));
+    $this->assertEqual($result['users']['delete'][1], ['user-simple:003' => 'User deleted']);
+
+    $result = $this->get('aarhus-kommune-management/users');
+    $users = $result['data'];
+
+    $numberOfUsersAfter = count($users);
+    $this->assertEqual($numberOfUsersBefore - 2, $numberOfUsersAfter);
+  }
+
+}

@@ -6,7 +6,8 @@
 	<file>aarhus_kommune_management.module</file>
 	<file>aarhus_kommune_management.admin.inc</file>
 	<file>src/</file>
-	<file>test/</file>
+	<file>tests/</file>
+	<file>examples/</file>
 
 	<!-- Do not print warnings -->
 	<arg value="n"/>

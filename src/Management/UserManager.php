@@ -49,23 +49,11 @@ class UserManager {
       }
     }
 
-    return [$data['uuid'] => !empty($user) ? 'User created' : 'Do not know how to create user'];
-
-    $user = (object) [];
-
-    foreach (self::$properties as $key => $property) {
-      if (isset($data[$key])) {
-        $user->{$property} = $data[$key];
-      }
+    if (NULL !== $user) {
+      return [$uuid => 'User created'];
     }
 
-    if (!isset($user->name) && isset($user->mail)) {
-      $user->name = $user->mail;
-    }
-
-    $result = user_save($user);
-
-    return [FALSE === $result ? 'Error creating user' : 'User created'];
+    return [$uuid => empty($modules) ? 'Do not know how to create user' : 'Cannot create user'];
   }
 
   /**
